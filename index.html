@@ -466,7 +466,17 @@ const GUIDE="\n<h3>프랑스식 이유식은 이렇게 달라요<\/h3>\n<ul>\n<l
   function bBlocks(){ const n=PLAN.length, out=[]; for(let s=0;s<n;s+=bSpan){ let e=Math.min(n,s+bSpan); if(n-e<bSpan/2)e=n; out.push([s,e]); if(e===n)break; } return out; }
   const MEALNAME=['점심','구테','저녁'];
   const r10=x=>Math.max(10,Math.ceil(x/10)*10);
-  function renderBatch(){
+  function freezeGuide(){ return `<div class="guide"><h3>얼리고 녹이는 법</h3><ul>
+      <li><b>한 번에 얼마나?</b> 프랑스 안내서는 집에서 만든 퓌레를 냉동해 2개월 안에 쓰라고 해요. 그래서 8회분도 기간상 문제없지만, 4회분이 냉동실 부담이 적고 같은 메뉴가 덜 반복돼요.</li>
+      <li><b>얼리기.</b> 만든 날 식혀서 바로 틀에 담아 얼리고, 굳으면 재료 이름과 날짜를 쓴 지퍼백으로 옮겨요. 기름·버터·치즈는 넣지 않은 채로 얼려요.</li>
+      <li><b>녹이기.</b> 전날 밤 먹을 만큼만 냉장실로 옮기거나, 언 채로 작은 냄비·전자레인지·중탕으로 바로 데워요. 실온에 오래 두고 녹이지 않아요.</li>
+      <li><b>데우기.</b> 속까지 김이 나도록(74°C) 데운 뒤 먹기 좋은 온도로 식혀요. 전자레인지는 중간에 한 번 저어 뜨거운 부분이 없게 해요. 되직하면 물이나 분유를 조금 넣어요.</li>
+      <li><b>한 번 녹인 건 다시 얼리지 않아요.</b> 냉장 해동한 큐브는 24시간 안에 쓰고, 아기가 먹던 그릇에 남은 건 버려요.</li>
+      <li><b>기름은 마지막에.</b> 데운 뒤 먹이기 직전에 그날 식단의 기름·버터 1작은술을 섞어요.</li>
+      <li><b>질감 단계.</b> 12/8부터는 덜 곱게, 12/17부터는 포크로 으깬 질감이에요. 뒤쪽 기간의 큐브는 만들 때 조금 덜 곱게 갈아 두세요.</li>
+      <li><b>알러젠 테스트 재료</b>(아몬드·헤이즐넛·호두 가루)는 큐브에 미리 섞지 말고 그날 따로 넣어요.</li>
+      </ul><p style="font-size:13px;color:var(--muted)">출처: <a href="${S.spf.u}" target="_blank" rel="noopener">${S.spf.n}</a> · <a href="${S.usda.u}" target="_blank" rel="noopener">${S.usda.n}</a></p></div>`; }
+  function renderBatchIng(){
     const blocks=bBlocks(); const ti=Math.max(0,Math.min(PLAN.length-1,Math.round((new Date(new Date().toDateString())-start)/86400000)));
     if(bBlock<0||bBlock>=blocks.length){ bBlock=blocks.findIndex(([s,e])=>ti>=s&&ti<e); if(bBlock<0)bBlock=0; }
     const [s,e]=blocks[bBlock]; const agg={}; const fresh={};
@@ -487,25 +497,62 @@ const GUIDE="\n<h3>프랑스식 이유식은 이렇게 달라요<\/h3>\n<ul>\n<l
         <span class="k">얼리기</span><p>${isP?`15ml 틀에 2/3씩 ${tray[15]}개`:trayTxt}${isP?'':`<br><span class="days">한 끼 분량: ${porTxt}</span>`}</p>
         <span class="k">쓰는 날</span><p class="days">${a.uses.join(', ')}</p></div>`; };
     const total=Object.keys(agg).length;
-    $('#panel-batch').innerHTML=`<p class="hint">끼니마다 만들지 않고, <b>재료별로 한 번에 만들어 큐브로 얼려 두는</b> 방법이에요. 먹일 때는 그날 끼니 카드의 '큐브로 꺼낼 양'대로 꺼내 한 그릇에 함께 데워 섞으면 식단의 그 퓌레가 돼요.</p>
+    $('#bbody').innerHTML=`<p class="hint"><b>재료를 하나씩 따로 갈아 큐브로 얼려 두는</b> 방법이에요. 프랑스 원칙이 '섞지 않기'라서가 아니라, 큐브를 조합하면 매일 다른 퓌레를 만들 수 있어서예요. 먹일 때는 그날 끼니 카드의 '큐브로 꺼낼 양'대로 꺼내 한 그릇에 함께 데워 섞으면 식단의 그 퓌레가 돼요.</p>
       <div class="bt" id="bspan"><button class="opt" data-v="14" aria-pressed="${bSpan===14}">2주치씩 (추천)</button><button class="opt" data-v="7" aria-pressed="${bSpan===7}">1주치씩</button></div>
       <div class="bt" id="bblk">${blocks.map(([a,b],i)=>`<button class="opt" data-v="${i}" aria-pressed="${i===bBlock}">${fmt(dateOf(a)).replace(/ \(.\)$/,'')} ~ ${fmt(dateOf(b-1)).replace(/ \(.\)$/,'')}</button>`).join('')}</div>
       <p class="hint">${fmt(dateOf(s))}부터 ${fmt(dateOf(e-1))}까지 ${e-s}일치예요. 재료 ${total}가지를 만들어 두면 돼요. 준비할 양은 넉넉하게(약 10% 여유) 잡은 대략의 무게예요.</p>
       ${cats.map(c=>{ const ks=Object.keys(agg).filter(k=>BATCH[k].cat===c).sort((x,y)=>agg[y].g-agg[x].g); return ks.length?`<h3 class="bcat">${c}</h3><div class="bgrid">${ks.map(card).join('')}</div>`:''; }).join('')}
       <h3 class="bcat">얼리지 않고 그때그때 준비하는 것</h3>
       <p class="hint" style="margin-top:0">${Object.keys(fresh).length?Object.entries(fresh).map(([f,n])=>`${f} ${n}회`).join(' · '):'없음'} · 요거트·리코타·기름·버터·허브·견과 가루는 먹이기 직전에 더해요.</p>
-      <div class="guide"><h3>얼리고 녹이는 법</h3><ul>
-      <li><b>한 번에 얼마나?</b> 프랑스 안내서는 집에서 만든 퓌레를 냉동해 2개월 안에 쓰라고 해요. 2주치씩 만들면 주재료(감자·당근·사과)는 7~13회분, 나머지는 2~5회분이라 냉동실 부담이 적고 맛도 덜 변해요. 30일치를 한 번에 만들어도 기간상으로는 문제없어요.</li>
-      <li><b>얼리기.</b> 만든 날 식혀서 바로 틀에 담아 얼리고, 굳으면 재료 이름과 날짜를 쓴 지퍼백으로 옮겨요. 기름·버터·치즈는 넣지 않은 채로 얼려요.</li>
-      <li><b>녹이기.</b> 전날 밤 먹을 만큼만 냉장실로 옮기거나, 언 채로 작은 냄비·전자레인지·중탕으로 바로 데워요. 실온에 오래 두고 녹이지 않아요.</li>
-      <li><b>데우기.</b> 속까지 김이 나도록(74°C) 데운 뒤 먹기 좋은 온도로 식혀요. 전자레인지는 중간에 한 번 저어 뜨거운 부분이 없게 해요. 되직하면 물이나 분유를 조금 넣어요.</li>
-      <li><b>한 번 녹인 건 다시 얼리지 않아요.</b> 냉장 해동한 큐브는 24시간 안에 쓰고, 아기가 먹던 그릇에 남은 건 버려요.</li>
-      <li><b>기름은 마지막에.</b> 데운 뒤 먹이기 직전에 그날 식단의 기름·버터 1작은술을 섞어요.</li>
-      <li><b>질감 단계.</b> 12/8부터는 덜 곱게, 12/17부터는 포크로 으깬 질감이에요. 뒤쪽 기간의 큐브는 만들 때 조금 덜 곱게 갈아 두세요.</li>
-      <li><b>알러젠 테스트 재료</b>(아몬드·헤이즐넛·호두 가루)는 큐브에 미리 섞지 말고 그날 따로 넣어요.</li>
-      </ul><p style="font-size:13px;color:var(--muted)">출처: <a href="${S.spf.u}" target="_blank" rel="noopener">${S.spf.n}</a> · <a href="${S.usda.u}" target="_blank" rel="noopener">${S.usda.n}</a></p></div>`;
-    $('#bspan').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bSpan=+b.dataset.v; bBlock=-1; renderBatch(); });
-    $('#bblk').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bBlock=+b.dataset.v; renderBatch(); });
+      ${freezeGuide()}`;
+    $('#bspan').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bSpan=+b.dataset.v; bBlock=-1; renderBatchIng(); });
+    $('#bblk').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bBlock=+b.dataset.v; renderBatchIng(); });
+  }
+  // 디쉬별: 식단의 퓌레를 그대로 여러 끼 분량으로
+  let bMode='dish', bN=4;
+  const FATS={colza:'카놀라유 1작은술',oliveoil:'올리브유 1작은술',butter:'무염버터 작은 조각(약 5g)',cream:'생크림 1작은술'};
+  const ADDS={emmental:'곱게 간 에멘탈 1작은술',sesame:'타히니 1/2작은술(참깨 유지)',almond:'아몬드가루',hazelnut:'헤이즐넛가루',walnut:'호두가루',peanut:'땅콩버터 1/2작은술',cinnamon:'시나몬 한 꼬집'};
+  const HERBS={thyme:'타임 1~2줄기(찔 때 넣었다가 건져내기)',parsley:'파슬리 잎 조금',basil:'바질 잎 조금',cumin:'커민가루 두세 꼬집',vanilla:'바닐라빈 씨 조금'};
+  const sd=i=>fmt(dateOf(i)).replace(/ \(.\)$/,'');
+  function trayFor(g){ const out=[]; let r=g; while(r>=100){ out.push(90); r-=90; } cubeCombo(r).forEach(z=>out.push(z)); const c={}; out.forEach(z=>c[z]=(c[z]||0)+1); return Object.keys(c).map(Number).sort((x,y)=>y-x).map(z=>`${z}ml ${c[z]}개`).join(' + '); }
+  function renderBatchDish(){
+    const groups=[['점심 퓌레',0],['저녁 퓌레',2],['구테 콩포트',1]]; const N=bN;
+    const collect=mi=>{ const map={}; PLAN.forEach((d,i)=>{ const m=d.meals[mi]; if(!m||!(m.cq||[]).length)return;
+        const key=mi===1?m.cq.map(c=>c.k).sort().join('+'):m.name; const o=map[key]=map[key]||{m,first:i,uses:[]}; o.uses.push(sd(i)); }); return Object.values(map).sort((a,b)=>a.first-b.first); };
+    const card=(o,mi)=>{ const m=Object.assign({},o.m,{cq:o.m.cq.map(c=>(c.k==='cod'&&c.g===5)?{k:'cod',g:10}:c)}); const first5=o.m.cq.some(c=>c.k==='cod'&&c.g===5); const tot=m.cq.reduce((s,c)=>s+c.g,0);
+      const title=mi===1?m.cq.map(c=>ingName(c.k).split('(')[0]).join('·')+' 콩포트':m.name;
+      const rows=m.cq.map(c=>{ const B=BATCH[c.k]; const isP=B.cat==='고기·생선·콩'&&c.k!=='lentil'; const raw=r10(c.g*N*B.rf*1.1);
+        const lbl=c.k==='rice'?`쌀 ${raw}g(마른 것)`:c.k==='lentil'?`붉은 렌틸 ${raw}g(마른 것)`:c.k==='prune'?`씨 뺀 건자두 ${Math.max(2,Math.round(c.g*N/15))}개`:`${ingName(c.k).split('(')[0]} ${raw}g${isP?'(날것)':''}`; return lbl; });
+      const herbs=m.ing.filter(k=>HERBS[k]).map(k=>HERBS[k]);
+      const hasMeat=m.cq.some(c=>['beef','chicken','lamb'].includes(c.k)), hasFish=m.cq.some(c=>['cod','salmon','mackerel'].includes(c.k)), hasRice=m.cq.some(c=>c.k==='rice'), hasLentil=m.cq.some(c=>c.k==='lentil');
+      const steps=[];
+      if(mi===1){ steps.push('과일을 손질해 냄비에 물을 조금 넣고 뚜껑 덮어 약불에 10~15분, 숟가락으로 으깨질 때까지 익혀요. 설탕은 넣지 않아요.'); steps.push('한데 갈거나 으깨요.'); }
+      else { steps.push('채소를 손질해 찜기에 넣고 포크로 쉽게 으깨질 때까지 쪄요. 양이 많으니 끼니별 레시피보다 5분쯤 더, 단단한 것부터 넣어요.');
+        if(hasMeat)steps.push('고기는 얇게 썰어 채소와 함께 15~20분, 분홍빛이 없을 때까지 쪄요.');
+        if(hasFish)steps.push('생선은 가시를 확인하고 채소 위에 올려 마지막 8~10분 함께 쪄요.');
+        if(hasRice)steps.push('쌀은 따로 6~7배의 물에 20~25분 푹 퍼지게 끓여요.');
+        if(hasLentil)steps.push('렌틸은 헹궈 3배의 물에 15분, 퍼질 때까지 끓여요.');
+        steps.push('모두 한데 넣고 찐 물을 조금씩 넣어가며 갈아요. 12/8부터는 덜 곱게, 12/17부터는 포크로 으깬 질감이에요.'); }
+      steps.push(`${N}등분해 얼려요. 한 끼분 약 ${tot}g → ${trayFor(tot)}.`);
+      const adds=[]; m.ing.forEach(k=>{ if(FATS[k])adds.push(FATS[k]); }); (m.fresh||[]).forEach(f=>adds.push(f)); m.ing.forEach(k=>{ if(ADDS[k])adds.push(ADDS[k]); });
+      if(first5)adds.push('생선 1회차 날(11/24)은 반 그릇만(대구 약 5g)');
+      return `<div class="bc"><h4>${title}</h4>${m.fr&&mi!==1?`<p class="frn" lang="fr" style="margin:0">${m.fr}</p>`:''}<div class="n">${N}회분 · 완성 약 ${tot*N}g</div>
+        <span class="k">재료 (손질한 무게, 대략)</span><p>${rows.join(', ')}${herbs.length?', '+herbs.join(', '):''}</p>
+        <span class="k">만드는 법</span><ol style="margin:4px 0 0;padding-left:18px;font-size:13.5px">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+        ${adds.length?`<span class="k">먹이는 날 더하기</span><p>데운 뒤 ${adds.join(' + ')}</p>`:''}
+        <span class="k">식단에서 나오는 날</span><p class="days">${o.uses.join(', ')} (${o.uses.length}번)</p></div>`; };
+    const lists=groups.map(([t,mi])=>[t,mi,collect(mi)]);
+    $('#bbody').innerHTML=`<p class="hint">식단에 적힌 퓌레를 <b>섞은 그대로 여러 끼 분량</b>으로 만드는 레시피예요(예: 단호박·리크 퓌레 + 닭고기 ${N}회분). 고기·생선도 함께 갈아 얼려요.</p>
+      <div class="bt" id="bn"><button class="opt" data-v="4" aria-pressed="${N===4}">4회분씩 (추천)</button><button class="opt" data-v="8" aria-pressed="${N===8}">8회분씩</button></div>
+      <p class="hint">30일 식단에는 점심 ${lists[0][2].length}가지, 저녁 ${lists[1][2].length}가지가 있고 대부분 한두 번만 나와요. 전부 ${N}회분씩 만들면 너무 많으니, <b>점심 ${Math.ceil(30/N)}가지 · 저녁 ${Math.ceil(30/N)}가지 정도를 골라</b> 돌려 먹이면 한 달치가 돼요. 같은 퓌레를 여러 번 주는 건 프랑스 지침(거부해도 10번까지 다시 주기)과도 맞아요. 새 알러젠 테스트 날만 식단 날짜를 지켜 주세요.</p>
+      ${lists.map(([t,mi,arr])=>`<h3 class="bcat">${t}</h3><div class="bgrid">${arr.map(o=>card(o,mi)).join('')}</div>`).join('')}
+      ${freezeGuide()}`;
+    $('#bn').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bN=+b.dataset.v; renderBatchDish(); });
+  }
+  function renderBatch(){
+    $('#panel-batch').innerHTML=`<div class="bt" id="bmode"><button class="opt" data-v="dish" aria-pressed="${bMode==='dish'}">퓌레(디쉬)별로 만들기</button><button class="opt" data-v="ing" aria-pressed="${bMode==='ing'}">재료별 큐브로 만들기</button></div><div id="bbody"></div><div id="bfoot"></div>`;
+    $('#bmode').querySelectorAll('button').forEach(b=>b.onclick=()=>{ bMode=b.dataset.v; renderBatch(); });
+    if(bMode==='dish')renderBatchDish(); else renderBatchIng();
   }
   function renderAll(){ renderBatch(); renderStats(); renderStrip(); renderDay(); renderLogList(); renderCal(); }
   renderShop();
